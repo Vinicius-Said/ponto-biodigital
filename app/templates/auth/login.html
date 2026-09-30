@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+
+{% block title %}Login - Biodigital Ponto{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+<div class="col-md-5">
+<h2>Login</h2>
+<form method="post">
+<input class="form-control mb-2" name="username" placeholder="Usuário">
+<input class="form-control mb-2" name="password" type="password" placeholder="Senha">
+<button class="btn btn-primary w-100">Entrar</button>
+</form>
+</div>
+</div>
+{% endblock %}
