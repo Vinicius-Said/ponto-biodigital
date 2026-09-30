@@ -1,0 +1,3 @@
+-r requirements-dev.txt
+# Only needed for optional local UI smoke checks; never installed on cPanel.
+playwright==1.55.0
