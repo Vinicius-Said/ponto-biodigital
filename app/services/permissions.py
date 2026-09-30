@@ -1,24 +1,21 @@
 from functools import wraps
 from flask import abort
-from flask_login import current_user
+from flask_login import current_user, login_required
 
 
 def require_role(role):
-    def decorator(function):
+    def decorate(function):
         @wraps(function)
-        def wrapper(*args, **kwargs):
-            if not current_user.is_authenticated:
-                abort(401)
-            if current_user.role != role:
+        @login_required
+        def wrapped(*args, **kwargs):
+            if not current_user.is_active or current_user.role != role:
                 abort(403)
             return function(*args, **kwargs)
-        return wrapper
-    return decorator
+
+        return wrapped
+
+    return decorate
 
 
-def require_director(function):
-    return require_role('DIRETORIA')(function)
-
-
-def require_employee(function):
-    return require_role('FUNCIONARIO')(function)
+require_director = require_role("DIRETORIA")
+require_employee = require_role("FUNCIONARIO")

@@ -1,17 +1,52 @@
 <!doctype html>
-<html lang="pt-BR">
+<html lang="pt-BR" data-theme="light">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Biodigital Ponto{% endblock %}</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Ponto Biodigital{% endblock %}</title>
+  <script src="{{ url_for('static', filename='js/theme.js') }}"></script>
+  <link rel="stylesheet" href="{{ url_for('static', filename='vendor/bootstrap.min.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/app.css') }}">
+  <script src="{{ url_for('static', filename='js/app.js') }}" defer></script>
 </head>
-<body>
-<nav class="navbar navbar-dark bg-dark px-3">
-    <span class="navbar-brand">Biodigital Ponto</span>
-</nav>
-<main class="container py-4">
+<body class="{% if current_user.is_authenticated %}app-body{% else %}auth-body{% endif %}">
+<a class="skip-link" href="#main">Ir para o conteúdo</a>
+{% from 'macros.html' import icon with context %}
+{% if current_user.is_authenticated %}
+<aside class="sidebar" id="navigation" aria-label="Navegação principal">
+  <a class="brand" href="{{ url_for('dashboard.index') }}"><span class="brand-mark">b.</span><span>BIODIGITAL<small>CONTROLE DE PONTO</small></span></a>
+  <p class="nav-caption">{{ 'GESTÃO DA EQUIPE' if current_user.role == 'DIRETORIA' else 'MINHA JORNADA' }}</p>
+  <nav>
+    <a class="nav-link {{ 'active' if request.blueprint == 'dashboard' }}" href="{{ url_for('dashboard.index') }}">{{ icon('dashboard') }}<span>Visão geral</span></a>
+    {% if current_user.role == 'FUNCIONARIO' %}
+    <a class="nav-link {{ 'active' if request.blueprint == 'attendance' }}" href="{{ url_for('attendance.index') }}">{{ icon('clock') }}<span>Meu histórico</span></a>
+    {% else %}
+    <a class="nav-link {{ 'active' if request.blueprint == 'employees' or request.blueprint == 'attendance' }}" href="{{ url_for('employees.index') }}">{{ icon('users') }}<span>Funcionários</span></a>
+    <a class="nav-link {{ 'active' if request.endpoint in ['admin.schedules', 'admin.create_schedule'] }}" href="{{ url_for('admin.schedules') }}">{{ icon('calendar') }}<span>Jornadas</span></a>
+    <a class="nav-link {{ 'active' if request.endpoint in ['admin.holidays', 'admin.remove_holiday'] }}" href="{{ url_for('admin.holidays') }}">{{ icon('calendar') }}<span>Feriados</span></a>
+    {% endif %}
+    <a class="nav-link {{ 'active' if request.blueprint == 'corrections' }}" href="{{ url_for('corrections.index') }}">{{ icon('edit') }}<span>Correções</span></a>
+    {% if current_user.role == 'DIRETORIA' %}
+    <a class="nav-link {{ 'active' if request.blueprint == 'reports' }}" href="{{ url_for('reports.index') }}">{{ icon('report') }}<span>Relatórios</span></a>
+    <p class="nav-caption">ADMINISTRAÇÃO</p>
+    <a class="nav-link {{ 'active' if request.endpoint and request.endpoint.startswith('admin.') and 'user' in request.endpoint or request.endpoint == 'admin.reset_password' }}" href="{{ url_for('admin.users') }}">{{ icon('shield') }}<span>Usuários e acessos</span></a>
+    <a class="nav-link {{ 'active' if request.blueprint == 'audit' }}" href="{{ url_for('audit.index') }}">{{ icon('list') }}<span>Auditoria</span></a>
+    {% endif %}
+  </nav>
+  <div class="sidebar-footer"><span class="online-dot"></span> Ponto Biodigital <small>Versão 0.1.0</small></div>
+</aside>
+<div class="app-shell">
+<header class="topbar">
+  <button class="icon-button menu-button" type="button" data-menu aria-controls="navigation" aria-expanded="false" aria-label="Abrir navegação">{{ icon('menu') }}</button>
+  <span class="topbar-title">Biodigital <span>/</span> {{ 'Painel da diretoria' if current_user.role == 'DIRETORIA' else 'Área do funcionário' }}</span>
+  <div class="topbar-actions"><button class="icon-button" type="button" data-theme-toggle aria-label="Alternar tema claro e escuro">{{ icon('sun') }}</button>
+    <a href="{{ url_for('auth.password') }}" class="user-chip" title="Alterar minha senha"><span class="avatar">{{ current_user.username[:1]|upper }}</span><span>{{ current_user.username }}<small>{{ 'Diretoria' if current_user.role == 'DIRETORIA' else 'Funcionário' }}</small></span></a>
+    <form method="post" action="{{ url_for('auth.logout') }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="icon-button" title="Sair" aria-label="Sair do sistema">{{ icon('logout') }}</button></form>
+  </div>
+</header>
+{% endif %}
+<main id="main" class="{% if current_user.is_authenticated %}main-content{% else %}auth-main{% endif %}">
+{% with messages = get_flashed_messages(with_categories=true) %}{% for category, message in messages %}<div class="notice notice-{{ category }}" role="status">{{ message }}</div>{% endfor %}{% endwith %}
 {% block content %}{% endblock %}
 </main>
-</body>
-</html>
+{% if current_user.is_authenticated %}<footer class="page-footer">Biodigital · Controle de ponto <span>Horários em Brasília</span></footer></div>{% endif %}
+</body></html>

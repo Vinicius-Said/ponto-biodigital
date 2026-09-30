@@ -1,0 +1,41 @@
+{% macro icon(name) -%}
+<svg class="icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+{% if name == 'dashboard' %}<rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/>
+{% elif name == 'clock' %}<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>
+{% elif name == 'users' %}<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M22 21v-2a4 4 0 0 0-3-3.9"/><circle cx="9" cy="7" r="4"/><path d="M16 3a4 4 0 0 1 0 8"/>
+{% elif name == 'calendar' %}<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 11h18M8 15h2M14 15h2"/>
+{% elif name == 'edit' %}<path d="M12 20H4V12M14 5l5 5M5 16l1 3 3-1L21 6l-4-4z"/>
+{% elif name == 'report' %}<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8zM14 2v6h6M8 12h8M8 16h8"/>
+{% elif name == 'shield' %}<path d="M12 3l8 3v6c0 5-8 10-8 10S4 17 4 12V6zM8 12l3 3 5-6"/>
+{% elif name == 'list' %}<path d="M8 6h13M8 12h13M8 18h13M3 6h.1M3 12h.1M3 18h.1"/>
+{% elif name == 'sun' %}<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M5 5l1.5 1.5M17.5 17.5L19 19M5 19l1.5-1.5M17.5 6.5L19 5"/>
+{% elif name == 'logout' %}<path d="M9 3H4v18h5M9 12h12M17 8l4 4-4 4"/>
+{% elif name == 'menu' %}<path d="M3 6h18M3 12h18M3 18h18"/>
+{% elif name == 'arrow' %}<path d="M5 12h14M13 6l6 6-6 6"/>
+{% elif name == 'check' %}<path d="M5 12l4 4L19 6"/>
+{% endif %}</svg>
+{%- endmacro %}
+
+{% macro fields(form) %}
+{{ form.hidden_tag() }}
+{% if form.current_password is defined %}{{ field(form.current_password) }}{% endif %}
+{% for f in form %}{% if f.type not in ['CSRFTokenField','SubmitField','HiddenField'] and f.name != 'current_password' %}{{ field(f) }}{% endif %}{% endfor %}
+<div class="form-actions">{{ form.submit(class_='btn btn-primary') }}</div>
+{% endmacro %}
+
+{% macro field(f) %}
+<div class="field">{{ f.label(class_='field-label') }}{{ f(class_='form-control' ~ (' is-invalid' if f.errors else ''), aria_describedby=f.id ~ '-errors') }}{% if f.errors %}<div class="field-errors" id="{{ f.id }}-errors">{% for error in f.errors %}{{ error }}{% if not loop.last %}<br>{% endif %}{% endfor %}</div>{% endif %}</div>
+{% endmacro %}
+
+{% macro badge(value) %}<span class="badge-pill {{ 'badge-green' if value in ['Concluído','APROVADO','Ativo'] else 'badge-red' if value in ['Incompleto','Inconsistente','RECUSADO','Inativo','Sem registro'] else 'badge-blue' if value == 'Em andamento' else 'badge-neutral' if value in ['Folga','Sem jornada'] else 'badge-amber' }}">{{ value }}</span>{% endmacro %}
+
+{% macro pagination(p) %}{% if p.pages > 1 %}<nav class="pagination-row" aria-label="Paginação"><span>Página {{ p.page }} de {{ p.pages }} · {{ p.total }} registros</span><div>{% if p.has_prev %}{% set q=request.args.to_dict() %}{% set _=q.update({'page':p.prev_num}) %}<a class="btn btn-secondary" href="{{ url_for(request.endpoint, **q) }}">Anterior</a>{% endif %}{% if p.has_next %}{% set q=request.args.to_dict() %}{% set _=q.update({'page':p.next_num}) %}<a class="btn btn-secondary" href="{{ url_for(request.endpoint, **q) }}">Próxima</a>{% endif %}</div></nav>{% endif %}{% endmacro %}
+
+{% macro period_fields(period, start, end) %}
+<div class="field"><label class="field-label" for="period">Período</label><select class="form-control" name="period" id="period" data-period>{% for val,label in [('day','Hoje'),('week','Esta semana'),('month','Este mês'),('custom','Personalizado')] %}<option value="{{ val }}" {{ 'selected' if period == val }}>{{ label }}</option>{% endfor %}</select></div>
+<div class="field"><label class="field-label" for="start">De</label><input class="form-control" type="date" name="start" id="start" value="{{ start.isoformat() }}"></div><div class="field"><label class="field-label" for="end">Até</label><input class="form-control" type="date" name="end" id="end" value="{{ end.isoformat() }}"></div>
+{% endmacro %}
+
+{% macro history_table(rows, allow_correction=False) %}
+<div class="table-wrap"><table class="data-table"><thead><tr><th>Data</th><th>Entrada</th><th>Intervalo</th><th>Retorno</th><th>Saída</th><th>Previsto</th><th>Realizado</th><th>Saldo</th><th>Situação</th>{% if allow_correction %}<th><span class="visually-hidden">Ações</span></th>{% endif %}</tr></thead><tbody>{% for row in rows %}<tr><td class="nowrap"><strong>{{ row.day.strftime('%d/%m/%Y') }}</strong>{% if row.late_minutes %}<small class="cell-note">{{ row.late_minutes }} min após a entrada prevista</small>{% endif %}</td>{% for kind in record_types %}<td class="time-cell">{% set record=row.by_type.get(kind) %}{% if record %}{{ (record.effective_at|local_time).strftime('%H:%M:%S') }}{% if record.corrected_at or record.source == 'CORRECAO' %}<small class="cell-note">Ajustado</small>{% endif %}{% else %}<span class="muted">—</span>{% endif %}</td>{% endfor %}<td class="time-cell">{{ row.expected|duration }}</td><td class="time-cell">{{ row.worked|duration }}{% if not row.complete and row.records %}<small class="cell-note">Parcial</small>{% endif %}</td><td class="time-cell {{ 'negative' if row.difference is not none and row.difference < 0 else 'positive' if row.difference is not none and row.difference > 0 }}">{{ row.difference|duration(signed=True) }}</td><td>{{ badge(row.status) }}</td>{% if allow_correction %}<td>{% if row.schedule and row.day <= current_date %}<a class="text-link" href="{{ url_for('corrections.create', day=row.day.isoformat()) }}">Corrigir</a>{% endif %}</td>{% endif %}</tr>{% else %}<tr><td colspan="10" class="empty-cell">Nenhum dia dentro do período de controle do funcionário.</td></tr>{% endfor %}</tbody></table></div>
+{% endmacro %}
