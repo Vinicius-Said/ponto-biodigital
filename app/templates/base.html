@@ -10,10 +10,10 @@
 </head>
 <body class="{% if current_user.is_authenticated %}app-body{% else %}auth-body{% endif %}">
 <a class="skip-link" href="#main">Ir para o conteúdo</a>
-{% from 'macros.html' import icon with context %}
+{% from 'macros.html' import brand, brand_images, icon with context %}
 {% if current_user.is_authenticated %}
 <aside class="sidebar" id="navigation" aria-label="Navegação principal">
-  <a class="brand" href="{{ url_for('dashboard.index') }}"><span class="brand-mark">b.</span><span>BIODIGITAL<small>CONTROLE DE PONTO</small></span></a>
+  {{ brand() }}
   <p class="nav-caption">{{ 'GESTÃO DA EQUIPE' if current_user.role == 'DIRETORIA' else 'MINHA JORNADA' }}</p>
   <nav>
     <a class="nav-link {{ 'active' if request.blueprint == 'dashboard' }}" href="{{ url_for('dashboard.index') }}">{{ icon('dashboard') }}<span>Visão geral</span></a>
@@ -37,7 +37,8 @@
 <div class="app-shell">
 <header class="topbar">
   <button class="icon-button menu-button" type="button" data-menu aria-controls="navigation" aria-expanded="false" aria-label="Abrir navegação">{{ icon('menu') }}</button>
-  <span class="topbar-title">Biodigital <span>/</span> {{ 'Painel da diretoria' if current_user.role == 'DIRETORIA' else 'Área do funcionário' }}</span>
+  <a class="mobile-brand" href="{{ url_for('dashboard.index') }}" aria-label="Biodigital · Página inicial">{{ brand_images() }}</a>
+  <span class="topbar-title"><span class="topbar-company">Biodigital</span> <span class="topbar-divider">/</span> {{ 'Painel da diretoria' if current_user.role == 'DIRETORIA' else 'Área do funcionário' }}</span>
   <div class="topbar-actions"><button class="icon-button" type="button" data-theme-toggle aria-label="Alternar tema claro e escuro">{{ icon('sun') }}</button>
     <a href="{{ url_for('auth.password') }}" class="user-chip" title="Alterar minha senha"><span class="avatar">{{ current_user.username[:1]|upper }}</span><span>{{ current_user.username }}<small>{{ 'Diretoria' if current_user.role == 'DIRETORIA' else 'Funcionário' }}</small></span></a>
     <form method="post" action="{{ url_for('auth.logout') }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="icon-button" title="Sair" aria-label="Sair do sistema">{{ icon('logout') }}</button></form>

@@ -1,3 +1,17 @@
+{% macro brand_images() -%}
+<span class="brand-logos">
+  <img class="brand-logo brand-logo-light" src="{{ url_for('static', filename='images/logo-biodigital-color.png') }}" width="2048" height="1399" alt="Biodigital">
+  <img class="brand-logo brand-logo-dark" src="{{ url_for('static', filename='images/logo-biodigital-white.png') }}" width="2048" height="1399" alt="Biodigital">
+</span>
+{%- endmacro %}
+
+{% macro brand() -%}
+<a class="brand" href="{{ url_for('index') }}" aria-label="Biodigital · Controle de ponto">
+  {{ brand_images() }}
+  <span class="brand-caption">CONTROLE DE PONTO</span>
+</a>
+{%- endmacro %}
+
 {% macro icon(name) -%}
 <svg class="icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
 {% if name == 'dashboard' %}<rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/>

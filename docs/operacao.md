@@ -10,6 +10,8 @@ Para corrigir um horário ou informar uma marcação esquecida, abra Correções
 
 Altere sua senha clicando no seu usuário no cabeçalho. A troca encerra todas as sessões. Use Sair para encerrar o acesso no navegador. O botão de tema alterna claro/escuro e salva a preferência neste navegador.
 
+A logo colorida aparece no tema claro e a branca no tema escuro, que usa fundos pretos e cinza grafite. No celular, a logo também aparece no cabeçalho. PDF e impressão utilizam a logo colorida sobre fundo claro.
+
 ## Diretoria
 
 Na visão geral consulte a equipe e as pendências. Funcionários permite cadastrar nome, início do controle, jornada, usuário e senha inicial. Escolha a data de início real do controle: dias passados com jornada mas sem registros aparecerão como Sem registro e gerarão diferença negativa.

@@ -1,3 +1,27 @@
-{% extends 'base.html' %}{% from 'macros.html' import fields, icon with context %}
+{% extends 'base.html' %}
+{% from 'macros.html' import brand, fields, icon with context %}
 {% block title %}Entrar · Ponto Biodigital{% endblock %}
-{% block content %}<div class="auth-layout"><section class="auth-brand-panel"><a class="brand" href="{{ url_for('index') }}"><span class="brand-mark">b.</span><span>BIODIGITAL<small>CONTROLE DE PONTO</small></span></a><div class="auth-intro"><span class="eyebrow">SUA JORNADA, ORGANIZADA</span><h1>Seu tempo.<br>Seu histórico.<br><span>Tudo em um lugar.</span></h1><p>Registre seu ponto, acompanhe suas horas e solicite ajustes com facilidade.</p><div class="auth-feature">{{ icon('shield') }} Acesso individual e histórico preservado</div></div><small>Biodigital · Controle interno de jornada</small></section><section class="auth-form-panel"><button class="icon-button auth-theme" data-theme-toggle type="button" aria-label="Alternar tema">{{ icon('sun') }}</button><div class="auth-card"><span class="eyebrow">BEM-VINDO</span><h2>Acesse seu ponto</h2><p class="muted">Entre com o usuário e a senha fornecidos pela diretoria.</p><form method="post">{{ fields(form) }}</form><p class="auth-help">Esqueceu a senha? Solicite a redefinição à diretoria.</p></div></section></div>{% endblock %}
+{% block content %}
+<div class="auth-layout">
+  <section class="auth-brand-panel">
+    {{ brand() }}
+    <div class="auth-intro">
+      <span class="eyebrow">SUA JORNADA, ORGANIZADA</span>
+      <h1>Seu tempo.<br>Seu histórico.<br><span>Tudo em um lugar.</span></h1>
+      <p>Registre seu ponto, acompanhe suas horas e solicite ajustes com facilidade.</p>
+      <div class="auth-feature">{{ icon('shield') }} Acesso individual e histórico preservado</div>
+    </div>
+    <small>Biodigital · Controle interno de jornada</small>
+  </section>
+  <section class="auth-form-panel">
+    <button class="icon-button auth-theme" data-theme-toggle type="button" aria-label="Alternar tema">{{ icon('sun') }}</button>
+    <div class="auth-card">
+      <span class="eyebrow">BEM-VINDO</span>
+      <h2>Acesse seu ponto</h2>
+      <p class="muted">Entre com o usuário e a senha fornecidos pela diretoria.</p>
+      <form method="post">{{ fields(form) }}</form>
+      <p class="auth-help">Esqueceu a senha? Solicite a redefinição à diretoria.</p>
+    </div>
+  </section>
+</div>
+{% endblock %}

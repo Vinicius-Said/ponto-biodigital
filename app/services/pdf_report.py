@@ -8,13 +8,14 @@ from reportlab.lib.enums import TA_CENTER
 from reportlab.lib.pagesizes import A4, landscape
 from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
 from reportlab.lib.units import mm
-from reportlab.platypus import LongTable, PageBreak, Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
+from reportlab.platypus import Image, LongTable, PageBreak, Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
 from app.models.time_record import RECORD_LABELS, RECORD_TYPES
 from app.services.clock import datetime_label, local_time, utc_now
 from app.services.time_calculator import format_duration
 
 
 FONT_ROOT = Path(__file__).resolve().parent.parent / "static" / "fonts"
+BRAND_LOGO = FONT_ROOT.parent / "images" / "logo-biodigital-color.png"
 pdfmetrics.registerFont(TTFont("BiodigitalSans", str(FONT_ROOT / "DejaVuSans.ttf")))
 pdfmetrics.registerFont(TTFont("BiodigitalSansBold", str(FONT_ROOT / "DejaVuSans-Bold.ttf")))
 pdfmetrics.registerFontFamily(
@@ -53,7 +54,7 @@ def build_pdf(reports, start, end):
     )
     styles.add(
         ParagraphStyle(
-            name="SmallNote", fontName="BiodigitalSans", fontSize=8, leading=12, textColor=colors.HexColor("#526275")
+            name="SmallNote", fontName="BiodigitalSans", fontSize=8, leading=12, textColor=colors.HexColor("#62626b")
         )
     )
     styles.add(ParagraphStyle(name="Metric", fontName="BiodigitalSans", fontSize=10, leading=15, alignment=TA_CENTER))
@@ -62,27 +63,48 @@ def build_pdf(reports, start, end):
     def paragraph(value, style="ReportCell"):
         return Paragraph(clean(value), styles[style])
 
+    def header(employee=None):
+        logo = Image(str(BRAND_LOGO))
+        aspect_ratio = logo.imageHeight / logo.imageWidth
+        logo.drawWidth = 105
+        logo.drawHeight = 105 * aspect_ratio
+        title = [Paragraph("Relatório de ponto", styles["Heading2"])]
+        if employee is not None:
+            title.append(paragraph(f"Funcionário: {employee.name}"))
+        title.append(paragraph(f"Período: {start:%d/%m/%Y} a {end:%d/%m/%Y}"))
+        table = Table([[logo, title]], colWidths=[130, doc.width - 130])
+        table.setStyle(
+            TableStyle(
+                [
+                    ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+                    ("LEFTPADDING", (0, 0), (-1, -1), 0),
+                    ("RIGHTPADDING", (0, 0), (-1, -1), 0),
+                    ("TOPPADDING", (0, 0), (-1, -1), 0),
+                    ("BOTTOMPADDING", (0, 0), (-1, -1), 6),
+                ]
+            )
+        )
+        return table
+
     def footer(canvas, document):
         canvas.saveState()
-        canvas.setStrokeColor(colors.HexColor("#dae3ec"))
+        canvas.setStrokeColor(colors.HexColor("#dedee2"))
         canvas.line(doc.leftMargin, 13 * mm, landscape(A4)[0] - doc.rightMargin, 13 * mm)
         canvas.setFont("BiodigitalSans", 8)
-        canvas.setFillColor(colors.HexColor("#526275"))
+        canvas.setFillColor(colors.HexColor("#62626b"))
         canvas.drawString(doc.leftMargin, 8 * mm, f"Biodigital | America/Sao_Paulo | Emitido em {emitted}")
         canvas.drawRightString(landscape(A4)[0] - doc.rightMargin, 8 * mm, f"Página {document.page}")
         canvas.restoreState()
 
     story = []
     if not reports:
-        story.append(Paragraph("BIODIGITAL - Relatório de ponto", styles["Title"]))
+        story.append(header())
         story.append(paragraph("Nenhum funcionário cadastrado para o período."))
     for index, report in enumerate(reports):
         if index:
             story.append(PageBreak())
         employee, totals = report["employee"], report["totals"]
-        story.append(Paragraph("BIODIGITAL", styles["Title"]))
-        story.append(Paragraph("Relatório de ponto", styles["Heading2"]))
-        story.append(paragraph(f"Funcionário: {employee.name} | Período: {start:%d/%m/%Y} a {end:%d/%m/%Y}"))
+        story.append(header(employee))
         story.append(Spacer(1, 4 * mm))
         metrics = Table(
             [
@@ -98,8 +120,8 @@ def build_pdf(reports, start, end):
         metrics.setStyle(
             TableStyle(
                 [
-                    ("BACKGROUND", (0, 0), (-1, -1), colors.HexColor("#eff7fc")),
-                    ("BOX", (0, 0), (-1, -1), 0.5, colors.HexColor("#d4e5f0")),
+                    ("BACKGROUND", (0, 0), (-1, -1), colors.HexColor("#f4f4f5")),
+                    ("BOX", (0, 0), (-1, -1), 0.5, colors.HexColor("#dedee2")),
                     ("TOPPADDING", (0, 0), (-1, -1), 10),
                     ("BOTTOMPADDING", (0, 0), (-1, -1), 10),
                 ]
@@ -144,9 +166,9 @@ def build_pdf(reports, start, end):
         table.setStyle(
             TableStyle(
                 [
-                    ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#12283e")),
-                    ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.white, colors.HexColor("#f4f7fa")]),
-                    ("LINEBELOW", (0, 0), (-1, -1), 0.3, colors.HexColor("#dce5ef")),
+                    ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#202024")),
+                    ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.white, colors.HexColor("#f6f6f7")]),
+                    ("LINEBELOW", (0, 0), (-1, -1), 0.3, colors.HexColor("#dedee2")),
                     ("VALIGN", (0, 0), (-1, -1), "TOP"),
                     ("TOPPADDING", (0, 0), (-1, -1), 5),
                     ("BOTTOMPADDING", (0, 0), (-1, -1), 5),
@@ -187,9 +209,9 @@ def build_pdf(reports, start, end):
             corrections_table.setStyle(
                 TableStyle(
                     [
-                        ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#12283e")),
+                        ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#202024")),
                         ("VALIGN", (0, 0), (-1, -1), "TOP"),
-                        ("LINEBELOW", (0, 0), (-1, -1), 0.3, colors.HexColor("#dce5ef")),
+                        ("LINEBELOW", (0, 0), (-1, -1), 0.3, colors.HexColor("#dedee2")),
                         ("TOPPADDING", (0, 0), (-1, -1), 6),
                         ("BOTTOMPADDING", (0, 0), (-1, -1), 6),
                     ]

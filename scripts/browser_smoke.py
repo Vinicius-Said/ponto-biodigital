@@ -27,6 +27,14 @@ from app.models import Employee, TimeRecord  # noqa: E402
 from app.services.clock import local_time, today, to_utc, utc_now  # noqa: E402
 
 
+def verify_logo(page, theme):
+    assert page.locator("html").get_attribute("data-theme") == theme
+    visible = page.locator(f".brand-logo-{'dark' if theme == 'dark' else 'light'}").first
+    hidden = page.locator(f".brand-logo-{'light' if theme == 'dark' else 'dark'}").first
+    assert visible.is_visible() and not hidden.is_visible()
+    assert visible.evaluate("image => image.complete && image.naturalWidth > 0 && image.naturalHeight > 0")
+
+
 def verify_browser():
     artifacts = ROOT / "tmp" / "ui"
     artifacts.mkdir(parents=True, exist_ok=True)
@@ -59,13 +67,30 @@ def verify_browser():
                 page = admin.new_page()
                 page.on("pageerror", lambda error: errors.append(str(error)))
                 page.goto(base + "/setup")
+                verify_logo(page, "light")
+                page.screenshot(path=str(artifacts / "setup-light.png"), full_page=True, animations="disabled")
+                page.emulate_media(color_scheme="dark")
+                page.reload()
+                verify_logo(page, "dark")
+                page.screenshot(path=str(artifacts / "setup-dark.png"), full_page=True, animations="disabled")
+                page.emulate_media(color_scheme="light")
+                page.reload()
                 page.get_by_label("Token de configuração").fill(setup_token)
                 page.get_by_label("Usuário", exact=True).fill("diretor_teste")
                 page.get_by_label("Senha", exact=True).fill(password)
                 page.get_by_label("Confirmar senha").fill(password)
                 page.get_by_role("button", name="Criar primeiro diretor").click()
                 page.wait_for_url("**/login")
+                verify_logo(page, "light")
                 page.screenshot(path=str(artifacts / "login-desktop.png"), full_page=True, animations="disabled")
+                page.get_by_role("button", name="Alternar tema", exact=True).click()
+                verify_logo(page, "dark")
+                page.screenshot(path=str(artifacts / "login-dark.png"), full_page=True, animations="disabled")
+                page.set_viewport_size({"width": 390, "height": 844})
+                assert page.evaluate("document.documentElement.scrollWidth <= window.innerWidth")
+                page.screenshot(path=str(artifacts / "login-mobile.png"), full_page=True, animations="disabled")
+                page.set_viewport_size({"width": 1440, "height": 1000})
+                page.get_by_role("button", name="Alternar tema", exact=True).click()
                 page.get_by_label("Usuário", exact=True).fill("diretor_teste")
                 page.get_by_label("Senha", exact=True).fill(password)
                 page.get_by_role("button", name="Entrar", exact=True).click()
@@ -102,7 +127,12 @@ def verify_browser():
                         stamp += timedelta(days=1)
                     db.session.commit()
                 page.goto(base + "/dashboard/")
+                verify_logo(page, "light")
                 page.screenshot(path=str(artifacts / "director-desktop.png"), full_page=True, animations="disabled")
+                page.get_by_role("button", name="Alternar tema claro e escuro").click()
+                verify_logo(page, "dark")
+                page.screenshot(path=str(artifacts / "director-dark.png"), full_page=True, animations="disabled")
+                page.get_by_role("button", name="Alternar tema claro e escuro").click()
                 employee_context = browser.new_context(viewport={"width": 1440, "height": 1000}, color_scheme="light")
                 employee_page = employee_context.new_page()
                 employee_page.on("pageerror", lambda error: errors.append(str(error)))
@@ -114,12 +144,14 @@ def verify_browser():
                 employee_page.get_by_role("button", name=re.compile("Registrar entrada")).click()
                 employee_page.wait_for_url("**/dashboard/")
                 assert employee_page.get_by_text("Entrada registrada pelo horário do servidor.").is_visible()
+                verify_logo(employee_page, "light")
                 employee_page.screenshot(
                     path=str(artifacts / "employee-desktop.png"), full_page=True, animations="disabled"
                 )
                 employee_page.get_by_role("button", name="Alternar tema claro e escuro").click()
                 employee_page.reload()
                 assert employee_page.locator("html").get_attribute("data-theme") == "dark"
+                verify_logo(employee_page, "dark")
                 employee_page.screenshot(
                     path=str(artifacts / "employee-dark.png"), full_page=True, animations="disabled"
                 )
@@ -129,6 +161,9 @@ def verify_browser():
                     path=str(artifacts / "employee-mobile.png"), full_page=True, animations="disabled"
                 )
                 employee_page.get_by_role("button", name="Abrir navegação").click()
+                employee_page.screenshot(
+                    path=str(artifacts / "navigation-mobile.png"), full_page=True, animations="disabled"
+                )
                 employee_page.get_by_role("link", name="Correções", exact=True).click()
                 employee_page.get_by_role("link", name="+ Solicitar correção", exact=True).click()
                 with app.app_context():
@@ -146,9 +181,16 @@ def verify_browser():
                 page.get_by_label("Justificativa da decisão").fill("Horário confirmado em homologação.")
                 page.once("dialog", lambda dialog: dialog.accept())
                 page.get_by_role("button", name="Confirmar decisão", exact=True).click()
-                assert page.get_by_text("Decisão registrada", exact=True).is_visible()
+                page.get_by_role("heading", name="Decisão registrada", exact=True).wait_for(state="visible")
                 page.goto(base + "/reports/?employee_id=0&period=month")
                 page.screenshot(path=str(artifacts / "report-desktop.png"), full_page=True, animations="disabled")
+                page.get_by_role("button", name="Alternar tema claro e escuro").click()
+                page.emulate_media(media="print")
+                assert page.locator(".print-brand .brand-logo-light").is_visible()
+                assert not page.locator(".print-brand .brand-logo-dark").is_visible()
+                page.screenshot(path=str(artifacts / "report-print.png"), full_page=True, animations="disabled")
+                page.emulate_media(media="screen")
+                page.get_by_role("button", name="Alternar tema claro e escuro").click()
                 with page.expect_download() as download:
                     page.get_by_role("link", name="Baixar PDF", exact=True).click()
                 download.value.save_as(str(artifacts / "report-sample.pdf"))

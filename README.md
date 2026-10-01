@@ -17,7 +17,7 @@ MVP 0.1.0 do controle interno de ponto da Biodigital, implementado com Python/Fl
 - Marcações originais e histórico de correções preservados permanentemente.
 - Dashboard do funcionário e da diretoria, PDF individual/consolidado e impressão.
 - Auditoria administrativa dos últimos três meses; comando de expurgo separado do histórico de ponto.
-- Interface responsiva, tema claro/escuro persistido no navegador e Bootstrap local.
+- Interface responsiva, temas claro e grafite/preto persistidos no navegador, logos oficiais colorida/branca e Bootstrap local.
 
 ## Rodar no Windows
 
